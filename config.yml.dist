@@ -1,0 +1,7 @@
+port: 8137
+client_id: "" # slack app id
+client_secret: "" # slack app secret
+db_username: "" # mysql
+db_password: ""
+db_database: ""
+slack_webhook_url: ""
