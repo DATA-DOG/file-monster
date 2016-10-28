@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gopkg.in/jmcvetta/napping.v1"
+	"code.cloudfoundry.org/bytefmt"
 )
 
 type fileList struct {
@@ -17,6 +18,7 @@ type fileList struct {
 type file struct {
 	ID         string `json:"id"`
 	IsExternal bool   `json:"is_external"`
+	Size			 uint64 `json:"size"`
 }
 
 type filesDelete struct {
@@ -52,22 +54,23 @@ func eatUserFiles(user string, token string, userName string) {
 		log.Panic(err)
 	}
 
-	count := deleteList(token, list)
+	count, totalSize := deleteList(token, list)
 	log.Println("Done for user", user, userName)
 
 	if count > 0 {
-		notifyUser(userName, fmt.Sprint("Your ", count, " files were delicious. Remember to feed me soon!"))
+		notifyUser(userName, fmt.Sprint("Your ", count, " files (", bytefmt.ByteSize(totalSize), ") were delicious. Remember to feed me soon!"))
 	} else {
 		notifyUser(userName, "I did not find anything to eat.")
 	}
 }
 
-func deleteList(token string, list fileList) int {
+func deleteList(token string, list fileList) (count int, totalSize uint64) {
 	if !list.Ok {
 		log.Print(list)
 	}
 
-	count := 0
+	count = 0
+  totalSize = 0
 
 	for _, file := range list.Files {
 		if file.IsExternal {
@@ -85,7 +88,8 @@ func deleteList(token string, list fileList) int {
 
 		time.Sleep(time.Second)
 		count++
+		totalSize += file.Size
 	}
 
-	return count
+	return
 }
