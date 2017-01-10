@@ -49,7 +49,7 @@ func dbSaveNiom(user string) {
 }
 
 func dbGetLastNiom(user string) string {
-	stmt, err := db.Prepare("SELECT date FROM nioms WHERE user = ?")
+	stmt, err := db.Prepare("SELECT date FROM nioms WHERE user = ? ORDER BY id DESC")
 	checkErr(err)
 
 	row := stmt.QueryRow(user)
