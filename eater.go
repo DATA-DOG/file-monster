@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"gopkg.in/jmcvetta/napping.v1"
 	"code.cloudfoundry.org/bytefmt"
+	"gopkg.in/jmcvetta/napping.v1"
 )
 
 type fileList struct {
@@ -18,7 +18,7 @@ type fileList struct {
 type file struct {
 	ID         string `json:"id"`
 	IsExternal bool   `json:"is_external"`
-	Size			 uint64 `json:"size"`
+	Size       uint64 `json:"size"`
 }
 
 type filesDelete struct {
@@ -70,7 +70,7 @@ func deleteList(token string, list fileList) (count int, totalSize uint64) {
 	}
 
 	count = 0
-  totalSize = 0
+	totalSize = 0
 
 	for _, file := range list.Files {
 		if file.IsExternal {

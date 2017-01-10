@@ -19,6 +19,19 @@ type authTest struct {
 	UserID string `json:"user_id"`
 }
 
+type member struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	RealName string `json:"real_name"`
+	Deleted  bool
+	IsBot    bool `json:"is_bot"`
+}
+
+type userList struct {
+	Ok      bool     `json:"ok"`
+	Members []member `json:"members"`
+}
+
 func main() {
 	loadConfig()
 	openSQLConnection()
@@ -37,6 +50,51 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	r.Header.Set("Content-Type", "text/html")
 
 	fmt.Fprint(w, "Nothing to see here...")
+}
+
+func listMembers(w http.ResponseWriter, r *http.Request) {
+	userID := r.PostFormValue("user_id")
+	text := r.PostFormValue("text")
+
+	if userID == "" {
+		fmt.Fprint(w, "No user provided")
+		return
+	}
+
+	token := dbGetUserToken(userID)
+
+	missingToken := len(token) == 0
+
+	if missingToken {
+		fmt.Fprint(w, "You are not registered. Type /flushme register")
+		return
+	}
+
+	params := &napping.Params{"token": token}
+	test := userList{}
+	var err interface{}
+
+	napping.Get("https://slack.com/api/users.list", params, &test, err)
+
+	if err != nil {
+		fmt.Fprint(w, "Could not access user list using access token")
+		return
+	}
+
+	for _, member := range test.Members {
+		if member.Deleted && text != "list all" {
+			continue
+		}
+		if member.IsBot && text != "list all" {
+			continue
+		}
+		lastNiom := dbGetLastNiom(member.ID)
+		if lastNiom != "" {
+			fmt.Fprint(w, member.Name+": "+lastNiom+"; ")
+		} else {
+			fmt.Fprint(w, member.Name+": never :-1:; ")
+		}
+	}
 }
 
 func slashCommand(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -66,11 +124,18 @@ func slashCommand(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
+	if text == "list" || text == "list all" {
+		listMembers(w, r)
+		return
+	}
+
 	if text == "all" {
 		fmt.Fprint(w, "Flushing public files...")
 		go eatPublicFiles(token)
 		return
 	}
+
+	dbSaveNiom(userID)
 
 	fmt.Fprint(w, "Monster is starting to eat your files...")
 	go eatUserFiles(userID, token, userName)

@@ -17,6 +17,8 @@ type Config struct {
 	DbPassword     string `yaml:"db_password"`
 	DbDatabase     string `yaml:"db_database"`
 	SlackWebookURL string `yaml:"slack_webhook_url"`
+	DbHost         string `yaml:"db_host"`
+	DbPort         int    `yaml:"db_port"`
 }
 
 var config Config

@@ -4,4 +4,6 @@ client_secret: "" # slack app secret
 db_username: "" # mysql
 db_password: ""
 db_database: ""
+db_host: "localhost"
+db_port: 3306
 slack_webhook_url: ""
